@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cmath>
 
+#include "Vector3.h"
+
 class Quaternion {
 private:
     double _w, _x, _y, _z;
@@ -11,6 +13,14 @@ private:
 public:
     Quaternion()
         : _w(1.0), _x(0.0), _y(0.0), _z(0.0) {
+    }
+
+    Quaternion(double w, const Vector3 &rotation)
+        : Quaternion(1, rotation.x(), rotation.y(), rotation.z()) {
+    }
+
+    Quaternion(const Vector3 &rotation)
+        : Quaternion(rotation.x(), rotation.y(), rotation.z()) {
     }
 
     Quaternion(double w, double x, double y, double z)
@@ -52,9 +62,11 @@ public:
     Quaternion conjugate() const {
         return Quaternion(_w, -_x, -_y, -_z);
     }
+
     double magnitude() const {
         return std::sqrt(_w * _w + _x * _x + _y * _y + _z * _z);
     }
+
     Quaternion operator*(const Quaternion &other) const noexcept {
         const double newW = _w * other._w - _x * other._x - _y * other._y - _z * other._z;
         const double newX = _w * other._x + _x * other._w + _y * other._z - _z * other._y;
@@ -62,8 +74,13 @@ public:
         const double newZ = _w * other._z + _x * other._y - _y * other._x + _z * other._w;
         return Quaternion(newW, newX, newY, newZ);
     }
-
-    Quaternion& operator*=(const Quaternion &other) noexcept {
+    Vector3 operator*(const Vector3 &v) const {
+        Quaternion q_v(0, v.x(), v.y(), v.z());
+        Quaternion q_conj = conjugate();
+        Quaternion q_rotated = *this * q_v * q_conj;
+        return Vector3(q_rotated.x(), q_rotated.y(), q_rotated.z());
+    }
+    Quaternion &operator*=(const Quaternion &other) noexcept {
         const double oldW = _w;
         const double oldX = _x;
         const double oldY = _y;
@@ -89,10 +106,10 @@ public:
     double y() { return _y; }
     double z() { return _z; }
 
-    void setW(double w) { _w = w; }
-    void setX(double x) { _x = x; }
-    void setY(double y) { _y = y; }
-    void setZ(double z) { _z = z; }
+    void w(double w) { _w = w; }
+    void x(double x) { _x = x; }
+    void y(double y) { _y = y; }
+    void z(double z) { _z = z; }
 };
 
 #endif
