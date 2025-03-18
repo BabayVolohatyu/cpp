@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "Vector3.h"
+#include "Matrix.h"
 
 class Quaternion {
 private:
@@ -47,6 +48,29 @@ public:
 
     ~Quaternion() = default;
 
+    static Matrix<double> toMatrix(const Quaternion& quaternion){
+        Matrix<double> result;
+        result.resize(4, 4);
+
+        // Quaternion to rotation matrix conversion
+        result[0][0] = 1 - 2 * (quaternion.y() * quaternion.y() + quaternion.z() * quaternion.z());
+        result[0][1] = 2 * (quaternion.x() * quaternion.y() - quaternion.z() * quaternion.w());
+        result[0][2] = 2 * (quaternion.x() * quaternion.z() + quaternion.y() * quaternion.w());
+        result[1][0] = 2 * (quaternion.x() * quaternion.y() + quaternion.z() * quaternion.w());
+        result[1][1] = 1 - 2 * (quaternion.x() * quaternion.x() + quaternion.z() * quaternion.z());
+        result[1][2] = 2 * (quaternion.y() * quaternion.z() - quaternion.x() * quaternion.w());
+        result[2][0] = 2 * (quaternion.x() * quaternion.z() - quaternion.y() * quaternion.w());
+        result[2][1] = 2 * (quaternion.y() * quaternion.z() + quaternion.x() * quaternion.w());
+        result[2][2] = 1 - 2 * (quaternion.x() * quaternion.x() + quaternion.y() * quaternion.y());
+
+        // Setting the last row and column for the 4x4 matrix (homogeneous coordinates)
+        result[3][0] = 0;
+        result[3][1] = 0;
+        result[3][2] = 0;
+        result[3][3] = 1;
+
+        return result;
+    }
     static double degreesToRadians(double degrees) {
         return degrees * M_PI / 180;
     }
@@ -103,13 +127,13 @@ public:
 
     friend std::istream &operator>>(std::istream &is, Quaternion &quaternion) = delete;
 
-    double w() { return _w; }
+    double w() const { return _w; }
 
-    double x() { return _x; }
+    double x() const { return _x; }
 
-    double y() { return _y; }
+    double y() const { return _y; }
 
-    double z() { return _z; }
+    double z() const { return _z; }
 
     void w(double w) { _w = w; }
 
