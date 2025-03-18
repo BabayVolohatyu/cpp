@@ -104,13 +104,19 @@ public:
     friend std::istream &operator>>(std::istream &is, Quaternion &quaternion) = delete;
 
     double w() { return _w; }
+
     double x() { return _x; }
+
     double y() { return _y; }
+
     double z() { return _z; }
 
     void w(double w) { _w = w; }
+
     void x(double x) { _x = x; }
+
     void y(double y) { _y = y; }
+
     void z(double z) { _z = z; }
 };
 

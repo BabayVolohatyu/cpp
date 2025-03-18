@@ -40,11 +40,15 @@ public:
     }
 
     double x() const { return _x; }
+
     double y() const { return _y; }
+
     double z() const { return _z; }
 
     void x(double x) { _x = x; }
+
     void y(double y) { _y = y; }
+
     void z(double z) { _z = z; }
 };
 #endif
