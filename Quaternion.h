@@ -74,12 +74,14 @@ public:
         const double newZ = _w * other._z + _x * other._y - _y * other._x + _z * other._w;
         return Quaternion(newW, newX, newY, newZ);
     }
+
     Vector3 operator*(const Vector3 &v) const {
         Quaternion q_v(0, v.x(), v.y(), v.z());
         Quaternion q_conj = conjugate();
         Quaternion q_rotated = *this * q_v * q_conj;
         return Vector3(q_rotated.x(), q_rotated.y(), q_rotated.z());
     }
+
     Quaternion &operator*=(const Quaternion &other) noexcept {
         const double oldW = _w;
         const double oldX = _x;

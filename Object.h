@@ -36,9 +36,9 @@ public:
 
     void rotate(const Quaternion &rotationQuaternion) {
         _rotation = rotationQuaternion * _rotation;
-        for (Point &p : _vertices) {
+        for (Point &p: _vertices) {
             Vector3 localVertex(p.x() - _position.x(), p.y() - _position.y(), p.z() - _position.z());
-            Vector3 rotatedVertex = _rotation*localVertex;
+            Vector3 rotatedVertex = _rotation * localVertex;
             p.position(rotatedVertex + _position);
         }
     }
@@ -50,24 +50,24 @@ public:
     Quaternion rotation() const { return _rotation; }
 
     void position(const Vector3 &position) {
-      Vector3 translation = position - _position;
-      for (Point &p: _vertices) {
-        p.x(p.x()+translation.x());
-        p.y(p.y()+translation.y());
-        p.z(p.z()+translation.z());
-      }
-      _position = position;
+        Vector3 translation = position - _position;
+        for (Point &p: _vertices) {
+            p.x(p.x() + translation.x());
+            p.y(p.y() + translation.y());
+            p.z(p.z() + translation.z());
+        }
+        _position = position;
     }
 
     void position(double x, double y, double z) {
-      Vector3 newPos(x, y, z);
-      Vector3 translation = newPos - _position;
-      for (Point &p: _vertices) {
-        p.x(p.x()+translation.x());
-        p.y(p.y()+translation.y());
-        p.z(p.z()+translation.z());
-      }
-      _position = newPos;
+        Vector3 newPos(x, y, z);
+        Vector3 translation = newPos - _position;
+        for (Point &p: _vertices) {
+            p.x(p.x() + translation.x());
+            p.y(p.y() + translation.y());
+            p.z(p.z() + translation.z());
+        }
+        _position = newPos;
     }
 
     void rotation(const Quaternion &rotation) {
