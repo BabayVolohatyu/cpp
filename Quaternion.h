@@ -1,6 +1,7 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
+#define MIN_LIMIT 1e-10
 #include <iostream>
 #include <cmath>
 
@@ -12,19 +13,21 @@ private:
     double _w, _x, _y, _z;
 
     static void approximate(double &w, double &x, double &y, double &z) {
-        if (std::abs(w) <= 1e-10) w = 0;
-        if (std::abs(x) <= 1e-10) x = 0;
-        if (std::abs(y) <= 1e-10) y = 0;
-        if (std::abs(z) <= 1e-10) z = 0;
+        if (std::abs(w) <= MIN_LIMIT) w = 0;
+        if (std::abs(x) <= MIN_LIMIT) x = 0;
+        if (std::abs(y) <= MIN_LIMIT) y = 0;
+        if (std::abs(z) <= MIN_LIMIT) z = 0;
     }
-
+    static double approximate(double value){
+      return (value<=MIN_LIMIT)?0:value;
+    }
 public:
     Quaternion()
         : _w(1.0), _x(0.0), _y(0.0), _z(0.0) {
     }
 
     Quaternion(double w, const Vector3 &rotation)
-        : Quaternion(1, rotation.x(), rotation.y(), rotation.z()) {
+        : Quaternion(w, rotation.x(), rotation.y(), rotation.z()) {
     }
 
     Quaternion(const Vector3 &rotation)
@@ -39,8 +42,8 @@ public:
         double phi = degreesToRadians(xRotation);
         double theta = degreesToRadians(yRotation);
         double psi = degreesToRadians(zRotation);
-        _w = std::cos(phi / 2) * std::cos(theta / 2) * std::cos(psi / 2) +
-             std::sin(phi / 2) * std::sin(theta / 2) * std::sin(psi / 2);
+        _w = std::cos(psi / 2) * std::cos(theta / 2) * std::cos(phi / 2) +
+             std::sin(psi / 2) * std::sin(theta / 2) * std::sin(phi / 2);
 
         _x = std::sin(phi / 2) * std::cos(theta / 2) * std::cos(psi / 2)
              - std::cos(phi / 2) * std::sin(theta / 2) * std::sin(psi / 2);
@@ -58,24 +61,20 @@ public:
     ~Quaternion() = default;
 
     static Matrix<double> toMatrix(const Quaternion& quaternion){
-        Matrix<double> result;
-        result.resize(4, 4);
+        Matrix<double> result(4,4,0);
 
         // Quaternion to rotation matrix conversion
-        result[0][0] = 1 - 2 * (quaternion.y() * quaternion.y() + quaternion.z() * quaternion.z());
-        result[0][1] = 2 * (quaternion.x() * quaternion.y() - quaternion.z() * quaternion.w());
-        result[0][2] = 2 * (quaternion.x() * quaternion.z() + quaternion.y() * quaternion.w());
-        result[1][0] = 2 * (quaternion.x() * quaternion.y() + quaternion.z() * quaternion.w());
-        result[1][1] = 1 - 2 * (quaternion.x() * quaternion.x() + quaternion.z() * quaternion.z());
-        result[1][2] = 2 * (quaternion.y() * quaternion.z() - quaternion.x() * quaternion.w());
-        result[2][0] = 2 * (quaternion.x() * quaternion.z() - quaternion.y() * quaternion.w());
-        result[2][1] = 2 * (quaternion.y() * quaternion.z() + quaternion.x() * quaternion.w());
-        result[2][2] = 1 - 2 * (quaternion.x() * quaternion.x() + quaternion.y() * quaternion.y());
+        result[0][0] = approximate( 1 - 2 * (quaternion.y() * quaternion.y() + quaternion.z() * quaternion.z()));
+        result[0][1] = approximate(2 * (quaternion.x() * quaternion.y() - quaternion.z() * quaternion.w()));
+        result[0][2] = approximate(2 * (quaternion.x() * quaternion.z() + quaternion.y() * quaternion.w()));
+        result[1][0] = approximate(2 * (quaternion.x() * quaternion.y() + quaternion.z() * quaternion.w()));
+        result[1][1] = approximate(1 - 2 * (quaternion.x() * quaternion.x() + quaternion.z() * quaternion.z()));
+        result[1][2] = approximate(2 * (quaternion.y() * quaternion.z() - quaternion.x() * quaternion.w()));
+        result[2][0] = approximate(2 * (quaternion.x() * quaternion.z() - quaternion.y() * quaternion.w()));
+        result[2][1] = approximate(2 * (quaternion.y() * quaternion.z() + quaternion.x() * quaternion.w()));
+        result[2][2] = approximate(1 - 2 * (quaternion.x() * quaternion.x() + quaternion.y() * quaternion.y()));
 
         // Setting the last row and column for the 4x4 matrix (homogeneous coordinates)
-        result[3][0] = 0;
-        result[3][1] = 0;
-        result[3][2] = 0;
         result[3][3] = 1;
 
         return result;
