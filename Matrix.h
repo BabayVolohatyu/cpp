@@ -1,10 +1,19 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#define MIN_LIMIT 1e-10
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 class Matrix {
 private:
     std::vector<std::vector<T> > matrix;
+
+    static void approximate(std::vector<std::vector<T>>& matrix) {
+        for (size_t i = 0; i < matrix.size(); i++) {
+            for (size_t j = 0; j < matrix[0].size(); j++) {
+                if (std::abs(matrix[i][j]) <= MIN_LIMIT) { matrix[i][j] = 0; }
+            }
+        }
+    }
 
 public:
     Matrix(size_t rows = 1, size_t cols = 1, T initialValue = T()) {
@@ -83,7 +92,7 @@ public:
                 inverse[i][j] = augmented[i][j + n];
             }
         }
-
+        approximate(augmented.matrix);
         return inverse;
     }
 
@@ -141,12 +150,8 @@ public:
                 }
             }
         }
-        //approximation
-        for (size_t i = 0; i < result.size().first; i++) {
-            for (size_t j = 0; j < result[0].size(); j++) {
-                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(result.matrix);
         return result;
     }
 
@@ -157,12 +162,8 @@ public:
                 result.matrix[i][j] = matrix[i][j] * scalar;
             }
         }
-        //approximation
-        for (size_t i = 0; i < result.size().first; i++) {
-            for (size_t j = 0; j < result[0].size(); j++) {
-                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(result.matrix);
         return result;
     }
 
@@ -184,12 +185,8 @@ public:
                 }
             }
         }
-        //approximation
-        for (size_t i = 0; i < result.size(); i++) {
-            for (size_t j = 0; j < result[0].size(); j++) {
-                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(result.matrix);
         // Assign the result back to the current matrix
         matrix = std::move(result.matrix);
 
@@ -202,12 +199,8 @@ public:
                 matrix[i][j] *= scalar;
             }
         }
-        //approximation
-        for (size_t i = 0; i < matrix.size(); i++) {
-            for (size_t j = 0; j < matrix[0].size(); j++) {
-                if (std::abs(matrix[i][j]) <= 1e-10) { matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(matrix);
         return *this;
     }
 
@@ -221,12 +214,8 @@ public:
                 result.matrix[i][j] = matrix[i][j] / scalar;
             }
         }
-        //approximation
-        for (size_t i = 0; i < result.size().first; i++) {
-            for (size_t j = 0; j < result[0].size(); j++) {
-                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(result.matrix);
         return result;
     }
 
@@ -239,12 +228,8 @@ public:
                 matrix[i][j] /= scalar;
             }
         }
-        //approximation
-        for (size_t i = 0; i < matrix.size(); i++) {
-            for (size_t j = 0; j < matrix[0].size(); j++) {
-                if (std::abs(matrix[i][j]) <= 1e-10) { matrix[i][j] = 0; }
-            }
-        }
+
+        approximate(matrix);
         return *this;
     }
 
