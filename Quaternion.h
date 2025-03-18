@@ -11,6 +11,13 @@ class Quaternion {
 private:
     double _w, _x, _y, _z;
 
+    static void approximate(double &w, double &x, double &y, double &z) {
+        if (std::abs(w) <= 1e-10) w = 0;
+        if (std::abs(x) <= 1e-10) x = 0;
+        if (std::abs(y) <= 1e-10) y = 0;
+        if (std::abs(z) <= 1e-10) z = 0;
+    }
+
 public:
     Quaternion()
         : _w(1.0), _x(0.0), _y(0.0), _z(0.0) {
@@ -44,6 +51,8 @@ public:
 
         _z = std::cos(phi / 2) * std::cos(theta / 2) * std::sin(psi / 2)
              - std::sin(phi / 2) * std::sin(theta / 2) * std::cos(psi / 2);
+
+        approximate(_w, _x, _y, _z);
     }
 
     ~Quaternion() = default;
@@ -82,6 +91,8 @@ public:
         _x /= mag;
         _y /= mag;
         _z /= mag;
+
+        approximate(_w, _x, _y, _z);
     }
 
     Quaternion conjugate() const {
@@ -93,10 +104,13 @@ public:
     }
 
     Quaternion operator*(const Quaternion &other) const noexcept {
-        const double newW = _w * other._w - _x * other._x - _y * other._y - _z * other._z;
-        const double newX = _w * other._x + _x * other._w + _y * other._z - _z * other._y;
-        const double newY = _w * other._y - _x * other._z + _y * other._w + _z * other._x;
-        const double newZ = _w * other._z + _x * other._y - _y * other._x + _z * other._w;
+        double newW = _w * other._w - _x * other._x - _y * other._y - _z * other._z;
+        double newX = _w * other._x + _x * other._w + _y * other._z - _z * other._y;
+        double newY = _w * other._y - _x * other._z + _y * other._w + _z * other._x;
+        double newZ = _w * other._z + _x * other._y - _y * other._x + _z * other._w;
+
+        approximate(newW, newX, newY, newZ);
+
         return Quaternion(newW, newX, newY, newZ);
     }
 
@@ -117,6 +131,8 @@ public:
         _x = oldW * other._x + oldX * other._w + oldY * other._z - oldZ * other._y;
         _y = oldW * other._y - oldX * other._z + oldY * other._w + oldZ * other._x;
         _z = oldW * other._z + oldX * other._y - oldY * other._x + oldZ * other._w;
+
+        approximate(_w, _x, _y, _z);
 
         return *this;
     }
