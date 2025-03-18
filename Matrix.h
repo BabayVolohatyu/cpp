@@ -14,6 +14,11 @@ public:
     Matrix(Matrix &&other) noexcept : matrix(std::move(other.matrix)) {
     }
 
+    Matrix(const Matrix &other) : matrix(other.matrix) {
+    }
+
+    ~Matrix() = default;
+
     Matrix transpose() const {
         Matrix result(matrix[0].size(), matrix.size());
         for (size_t i = 0; i < matrix.size(); i++) {
@@ -23,6 +28,7 @@ public:
         }
         return result;
     }
+
     Matrix inverse() {
         size_t n = matrix.size();
         if (n != matrix[0].size()) {
@@ -89,6 +95,16 @@ public:
         matrix.clear();
     }
 
+    void print() {
+        for (size_t i = 0; i < matrix.size(); i++) {
+            std::cout << "[ ";
+            for (size_t j = 0; j < matrix[0].size(); j++) {
+                std::cout << matrix[i][j] << " ";
+            }
+            std::cout << ']' << std::endl;
+        }
+    }
+
     std::vector<T> &operator[](size_t row) {
         return matrix[row];
     }
@@ -107,7 +123,7 @@ public:
         return *this;
     }
 
-    Matrix operator*(const Matrix &other){
+    Matrix operator*(const Matrix &other) {
         size_t numberOfRows = matrix.size(); // number of rows of the first matrix
         size_t numberOfColumns = other.size().second; // number of columns of the second matrix
         size_t n = matrix[0].size(); //columns of first matrix
@@ -125,15 +141,26 @@ public:
                 }
             }
         }
-
+        //approximation
+        for (size_t i = 0; i < result.size().first; i++) {
+            for (size_t j = 0; j < result[0].size(); j++) {
+                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
+            }
+        }
         return result;
     }
 
-    Matrix operator*(const T &scalar){
+    Matrix operator*(const T &scalar) {
         Matrix result(matrix.size(), matrix[0].size());
         for (size_t i = 0; i < matrix.size(); i++) {
             for (size_t j = 0; j < matrix[0].size(); j++) {
                 result.matrix[i][j] = matrix[i][j] * scalar;
+            }
+        }
+        //approximation
+        for (size_t i = 0; i < result.size().first; i++) {
+            for (size_t j = 0; j < result[0].size(); j++) {
+                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
             }
         }
         return result;
@@ -157,7 +184,12 @@ public:
                 }
             }
         }
-
+        //approximation
+        for (size_t i = 0; i < result.size(); i++) {
+            for (size_t j = 0; j < result[0].size(); j++) {
+                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
+            }
+        }
         // Assign the result back to the current matrix
         matrix = std::move(result.matrix);
 
@@ -170,10 +202,16 @@ public:
                 matrix[i][j] *= scalar;
             }
         }
+        //approximation
+        for (size_t i = 0; i < matrix.size(); i++) {
+            for (size_t j = 0; j < matrix[0].size(); j++) {
+                if (std::abs(matrix[i][j]) <= 1e-10) { matrix[i][j] = 0; }
+            }
+        }
         return *this;
     }
 
-    Matrix operator/(const T &scalar){
+    Matrix operator/(const T &scalar) {
         if (scalar == 0.0) {
             throw std::invalid_argument("Cannot divide by zero");
         }
@@ -181,6 +219,12 @@ public:
         for (size_t i = 0; i < matrix.size(); i++) {
             for (size_t j = 0; j < matrix[0].size(); j++) {
                 result.matrix[i][j] = matrix[i][j] / scalar;
+            }
+        }
+        //approximation
+        for (size_t i = 0; i < result.size().first; i++) {
+            for (size_t j = 0; j < result[0].size(); j++) {
+                if (std::abs(result.matrix[i][j]) <= 1e-10) { result.matrix[i][j] = 0; }
             }
         }
         return result;
@@ -195,10 +239,16 @@ public:
                 matrix[i][j] /= scalar;
             }
         }
+        //approximation
+        for (size_t i = 0; i < matrix.size(); i++) {
+            for (size_t j = 0; j < matrix[0].size(); j++) {
+                if (std::abs(matrix[i][j]) <= 1e-10) { matrix[i][j] = 0; }
+            }
+        }
         return *this;
     }
 
-    Matrix operator+(const Matrix &other){
+    Matrix operator+(const Matrix &other) {
         // Check if dimensions match
         if (matrix.size() != other.size().first || matrix[0].size() != other.size().second) {
             throw std::invalid_argument("Matrix dimensions don't match");
@@ -216,7 +266,7 @@ public:
         return result;
     }
 
-    Matrix operator+(const T &scalar){
+    Matrix operator+(const T &scalar) {
         Matrix result(matrix.size(), matrix[0].size());
         for (size_t i = 0; i < matrix.size(); i++) {
             for (size_t j = 0; j < matrix[0].size(); j++) {
@@ -251,7 +301,7 @@ public:
         return *this;
     }
 
-    Matrix operator-(const Matrix &other){
+    Matrix operator-(const Matrix &other) {
         // Check if dimensions match
         if (matrix.size() != other.size().first || matrix[0].size() != other.size().second) {
             throw std::invalid_argument("Matrix dimensions don't match");
@@ -269,7 +319,7 @@ public:
         return result;
     }
 
-    Matrix operator-(const T &scalar){
+    Matrix operator-(const T &scalar) {
         Matrix result(matrix.size(), matrix[0].size());
         for (size_t i = 0; i < matrix.size(); i++) {
             for (size_t j = 0; j < matrix[0].size(); j++) {
@@ -295,7 +345,7 @@ public:
         return *this;
     }
 
-    Matrix &operator-=(const T &scalar){
+    Matrix &operator-=(const T &scalar) {
         for (size_t i = 0; i < matrix.size(); i++) {
             for (size_t j = 0; j < matrix[0].size(); j++) {
                 matrix[i][j] -= scalar;
