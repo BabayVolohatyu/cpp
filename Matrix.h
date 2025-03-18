@@ -1,7 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-template<class T>
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 class Matrix {
 private:
     std::vector<std::vector<T> > matrix;
