@@ -34,6 +34,19 @@ public:
           _farClip{farClip} {
     }
 
+    Matrix<double> translate(const Vector3 &position) const{
+        Matrix<double> result(4,4);
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                if (i == j) result[i][j] = 1;
+            }
+        }
+        result[0][3] = position.x();
+        result[1][3] = position.y();
+        result[2][3] = position.z();
+        return result;
+    }
+
     //function accepts two parameters for its variants that work accordingly to camera rotation
     void translatePosition(const Vector3 &direction, double amount) {
         _position = _position + (direction * amount);
@@ -49,7 +62,11 @@ public:
         Quaternion deltaRotation(eulerAngles); // Uses your Euler constructor
         _rotation = deltaRotation * _rotation; // Apply new rotation
     }
-
+    Matrix<double> viewMatrix() const{
+      Matrix<double> translationMatrix = translate(-_position);
+      Matrix<double> rotationMatrix = Quaternion::toMatrix(_rotation).transpose();
+      return rotationMatrix*translationMatrix;
+    }
     Vector3 position() const { return _position; }
 
     Quaternion rotation() const { return _rotation; }
