@@ -19,7 +19,7 @@ private:
         if (std::abs(z) <= MIN_LIMIT) z = 0;
     }
     static double approximate(double value){
-      return (value<=MIN_LIMIT)?0:value;
+      return std::abs(value)<=MIN_LIMIT?0:value;
     }
 public:
     Quaternion()
@@ -42,43 +42,48 @@ public:
         double phi = degreesToRadians(xRotation);
         double theta = degreesToRadians(yRotation);
         double psi = degreesToRadians(zRotation);
-        _w = std::cos(psi / 2) * std::cos(theta / 2) * std::cos(phi / 2) +
-             std::sin(psi / 2) * std::sin(theta / 2) * std::sin(phi / 2);
+        _w = std::cos(phi / 2) * std::cos(theta / 2) * std::cos(psi / 2)
+           + std::sin(phi / 2) * std::sin(theta / 2) * std::sin(psi / 2);
 
         _x = std::sin(phi / 2) * std::cos(theta / 2) * std::cos(psi / 2)
-             - std::cos(phi / 2) * std::sin(theta / 2) * std::sin(psi / 2);
-
+                   + std::cos(phi / 2) * std::sin(theta / 2) * std::sin(psi / 2);
 
         _y = std::cos(phi / 2) * std::sin(theta / 2) * std::cos(psi / 2)
-             + std::sin(phi / 2) * std::cos(theta / 2) * std::sin(psi / 2);
+                   - std::sin(phi / 2) * std::cos(theta / 2) * std::sin(psi / 2);
 
         _z = std::cos(phi / 2) * std::cos(theta / 2) * std::sin(psi / 2)
-             - std::sin(phi / 2) * std::sin(theta / 2) * std::cos(psi / 2);
+                   - std::sin(phi / 2) * std::sin(theta / 2) * std::cos(psi / 2);
 
         approximate(_w, _x, _y, _z);
     }
 
     ~Quaternion() = default;
 
-    static Matrix<double> toMatrix(const Quaternion& quaternion){
-        Matrix<double> result(4,4,0);
+    static Matrix<double> toMatrix(const Quaternion& quaternion) {
+        Matrix<double> result(4, 4, 0);
 
-        // Quaternion to rotation matrix conversion
-        result[0][0] = approximate( 1 - 2 * (quaternion.y() * quaternion.y() + quaternion.z() * quaternion.z()));
-        result[0][1] = approximate(2 * (quaternion.x() * quaternion.y() - quaternion.z() * quaternion.w()));
-        result[0][2] = approximate(2 * (quaternion.x() * quaternion.z() + quaternion.y() * quaternion.w()));
-        result[1][0] = approximate(2 * (quaternion.x() * quaternion.y() + quaternion.z() * quaternion.w()));
-        result[1][1] = approximate(1 - 2 * (quaternion.x() * quaternion.x() + quaternion.z() * quaternion.z()));
-        result[1][2] = approximate(2 * (quaternion.y() * quaternion.z() - quaternion.x() * quaternion.w()));
-        result[2][0] = approximate(2 * (quaternion.x() * quaternion.z() - quaternion.y() * quaternion.w()));
-        result[2][1] = approximate(2 * (quaternion.y() * quaternion.z() + quaternion.x() * quaternion.w()));
-        result[2][2] = approximate(1 - 2 * (quaternion.x() * quaternion.x() + quaternion.y() * quaternion.y()));
+        double w = quaternion.w();
+        double x = quaternion.x();
+        double y = quaternion.y();
+        double z = quaternion.z();
 
-        // Setting the last row and column for the 4x4 matrix (homogeneous coordinates)
+        result[0][0] = approximate( 1 - 2 * (y * y + z * z));
+        result[0][1] = approximate( 2 * (x * y - w * z));
+        result[0][2] = approximate(2 * (x * z + w * y));
+
+        result[1][0] = approximate( 2 * (x * y + w * z));
+        result[1][1] = approximate(1 - 2 * (x * x + z * z));
+        result[1][2] = approximate(2 * (y * z - w * x));
+
+        result[2][0] = approximate(2 * (x * z - w * y));
+        result[2][1] = approximate(2 * (y * z + w * x));
+        result[2][2] = approximate(1 - 2 * (x * x + y * y));
+
         result[3][3] = 1;
 
         return result;
     }
+
 
     static double degreesToRadians(double degrees) {
         return degrees * M_PI / 180;
@@ -137,7 +142,7 @@ public:
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Quaternion &quaternion) {
-        os << quaternion._w << ' ' << quaternion._x << ' ' << quaternion._y << ' ' << quaternion._z;
+        os <<"W: "<< quaternion._w << " X: " << quaternion._x << " Y: " << quaternion._y << " Z: " << quaternion._z;
         return os;
     }
 
