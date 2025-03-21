@@ -20,6 +20,10 @@ public:
         return Vector3(_x - other._x, _y - other._y, _z - other._z);
     }
 
+    Vector3 operator-() const {
+        return Vector3(-_x, -_y, -_z);
+    }
+
     Vector3 operator*(double scalar) const {
         return Vector3(_x * scalar, _y * scalar, _z * scalar);
     }
