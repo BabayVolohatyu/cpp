@@ -23,7 +23,7 @@ private:
     }
 public:
     Quaternion()
-        : _w(1.0), _x(0.0), _y(0.0), _z(0.0) {
+        : _w(1), _x(0), _y(0), _z(0) {
     }
 
     Quaternion(double w, const Vector3 &rotation)
