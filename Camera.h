@@ -13,27 +13,6 @@ private:
     double _nearClip; // Near clipping plane
     double _farClip; // Far clipping plane
 
-public:
-    const Vector3 forward{0, 0, -1};
-
-    const Vector3 up{0, 1, 0};
-
-    const Vector3 right{1, 0, 0};
-
-    Camera(const Vector3 &position = {0, 0, 0},
-           const Quaternion &rotation = {0, 0, 0},
-           double fov = 80,
-           double aspectRatio = 16.0 / 9.0,
-           double nearClip = 1,
-           double farClip = 100)
-        : _position{position},
-          _rotation{rotation},
-          _fov{fov},
-          _aspectRatio{aspectRatio},
-          _nearClip{nearClip},
-          _farClip{farClip} {
-    }
-
     Matrix<double> translate(const Vector3 &position) const{
         Matrix<double> result(4,4);
         for (int i = 0; i < 4; i++) {
@@ -45,6 +24,27 @@ public:
         result[1][3] = position.y();
         result[2][3] = position.z();
         return result;
+    }
+
+public:
+    const Vector3 forward{0, 0, -1};
+
+    const Vector3 up{0, 1, 0};
+
+    const Vector3 right{1, 0, 0};
+
+    Camera(const Vector3 &position = {0, 0, 0},
+           const Quaternion &rotation = {0, 0, 0},
+           double fov = 80,
+           double aspectRatio = 16 / 9,
+           double nearClip = 1,
+           double farClip = 100)
+        : _position{position},
+          _rotation{rotation},
+          _fov{fov},
+          _aspectRatio{aspectRatio},
+          _nearClip{nearClip},
+          _farClip{farClip} {
     }
 
     //function accepts two parameters for its variants that work accordingly to camera rotation
@@ -62,11 +62,29 @@ public:
         Quaternion deltaRotation(eulerAngles); // Uses your Euler constructor
         _rotation = deltaRotation * _rotation; // Apply new rotation
     }
+
     Matrix<double> viewMatrix() const{
       Matrix<double> translationMatrix = translate(-_position);
       Matrix<double> rotationMatrix = Quaternion::toMatrix(_rotation).transpose();
-      return rotationMatrix*translationMatrix;
+      return translationMatrix * rotationMatrix;
     }
+
+    Matrix<double> projectionMatrix() const {
+        double fovRadians = _fov * (M_PI / 180);
+        double tanHalfFov = tan(fovRadians / 2);
+        double range = _nearClip - _farClip;
+
+        Matrix<double> proj(4,4,0);
+        proj[0][0] = 1 / (tanHalfFov * _aspectRatio);
+        proj[1][1] = 1 / tanHalfFov;
+        proj[2][2] = (-_nearClip - _farClip) / range;
+        proj[2][3] = 2 * _farClip * _nearClip / range;
+        proj[3][2] = 1;
+        proj[3][3] = 0;
+
+        return proj;
+    }
+
     Vector3 position() const { return _position; }
 
     Quaternion rotation() const { return _rotation; }
