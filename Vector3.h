@@ -32,6 +32,18 @@ public:
         return Vector3(_x / scalar, _y / scalar, _z / scalar);
     }
 
+    Vector3 cross(const Vector3& other) const {
+        return {
+            _y * other.z() - _z * other.y(),
+            _z * other.x() - _x * other.z(),
+            _x * other.y() - _y * other.x()
+        };
+    }
+
+    double dot(const Vector3& other) const {
+        return _x * other.x() + _y * other.y() + _z * other.z();
+    }
+
     void normalize() {
         double mag = magnitude();
         _x /= mag;
