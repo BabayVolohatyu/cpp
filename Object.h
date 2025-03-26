@@ -6,6 +6,7 @@
 #include "Vector3.h"
 #include "Point.h"
 #include "Quaternion.h"
+#include "Matrix.h"
 
 class Object {
 private:
@@ -13,6 +14,16 @@ private:
     Quaternion _rotation;
     std::vector<Point> _vertices;
 
+    Matrix<double> getTranslationMatrix() const{
+      Matrix<double> translation(4, 4);
+      for (int i = 0; i < 4; i++) {
+        translation[i][i] = 1;
+      }
+      translation[0][3] = _position.x();
+      translation[1][3] = _position.y();
+      translation[2][3] = _position.z();
+      return translation;
+    }
 public:
     Object()
         : _position(0, 0, 0), _rotation(1, 0, 0, 0) {
@@ -41,6 +52,12 @@ public:
             Vector3 rotatedVertex = _rotation * localVertex;
             p.position(rotatedVertex + _position);
         }
+    }
+
+    Matrix<double> getModelMatrix() const {
+      Matrix<double> translationMatrix = getTranslationMatrix();
+      Matrix<double> rotationMatrix = Quaternion::toMatrix(_rotation);
+      return translationMatrix*rotationMatrix;
     }
 
     std::vector<Point> vertices() const { return _vertices; }
