@@ -2,7 +2,10 @@
 #define CAMERA_H
 
 #include "Matrix.h"
+#include "Quaternion.h"
 #include "Vector3.h"
+#include "Object.h"
+
 
 class Camera {
 private:
@@ -13,8 +16,8 @@ private:
     double _nearClip; // Near clipping plane
     double _farClip; // Far clipping plane
 
-    Matrix<double> translate(const Vector3 &position) const{
-        Matrix<double> result(4,4);
+    static Matrix<double> translate(const Vector3 &position) {
+        Matrix<double> result(4, 4);
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (i == j) result[i][j] = 1;
@@ -26,19 +29,63 @@ private:
         return result;
     }
 
+    static void display(int screenX, int screenY) {
+        std::cout << "\033[" << screenY << ";" << screenX << "H"; //i
+
+        std::cout << "#" << std::flush;
+        std::cout << "\033[0;0H";
+    }
+
+    void drawVertices(const Object &object, int screenWidth, int screenHeight) const {
+        Matrix<double> modelMatrix = object.getModelMatrix();
+        Matrix<double> viewMatrix = this->viewMatrix();
+        Matrix<double> projectionMatrix = this->projectionMatrix();
+        for (const Point &point: object.vertices()) {
+            Matrix<double> worldPosVector(4, 1);
+            worldPosVector[0][0] = point.x();
+            worldPosVector[1][0] = point.y();
+            worldPosVector[2][0] = point.z();
+            worldPosVector[3][0] = 1;
+            worldPosVector = modelMatrix * worldPosVector;
+            Matrix<double> viewPosVector = viewMatrix * worldPosVector;
+            Matrix<double> clipPosVector = projectionMatrix * viewPosVector;
+            if (clipPosVector[3][0] != 0) {
+                clipPosVector[0][0] /= clipPosVector[3][0];
+                clipPosVector[1][0] /= clipPosVector[3][0];
+                clipPosVector[2][0] /= clipPosVector[3][0];
+            }
+            // Convert to screen space (viewport transformation)
+            double screenX = (clipPosVector[0][0] * 0.5 + 0.5) * screenWidth;
+            double screenY = (clipPosVector[1][0] * 0.5 + 0.5) * screenHeight;
+
+            if (clipPosVector[0][0] < -clipPosVector[3][0] || clipPosVector[0][0] > clipPosVector[3][0] ||
+                clipPosVector[1][0] < -clipPosVector[3][0] || clipPosVector[1][0] > clipPosVector[3][0] ||
+                clipPosVector[2][0] < -clipPosVector[3][0] || clipPosVector[2][0] > clipPosVector[3][0]) {
+                continue; // Skip this vertex
+            }
+            this->display(screenX, screenY);
+        }
+    }
+
 public:
-    const Vector3 forward{0, 0, -1};
+    const Vector3 worldForward{0, 0, -1};
 
-    const Vector3 up{0, 1, 0};
+    const Vector3 worldUp{0, 1, 0};
 
-    const Vector3 right{1, 0, 0};
+    const Vector3 worldRight{1, 0, 0};
+    //add dependency between angles and those three vectors
+    Vector3 forward{0, 0, -1};
+
+    Vector3 up{0, 1, 0};
+
+    Vector3 right{1, 0, 0};
 
     Camera(const Vector3 &position = {0, 0, 0},
            const Quaternion &rotation = {0, 0, 0},
-           double fov = 80,
+           double fov = 90,
            double aspectRatio = 16 / 9,
-           double nearClip = 1,
-           double farClip = 100)
+           double nearClip = 0.1,
+           double farClip = 1000)
         : _position{position},
           _rotation{rotation},
           _fov{fov},
@@ -58,15 +105,48 @@ public:
 
     void moveUp(double amount) { translatePosition(_rotation * up, amount); }
 
+    void lookAt(const Point &point) {
+        Vector3 desiredForward = {
+            point.x() - this->_position.x(),
+            point.y() - this->_position.y(),
+            point.z() - this->_position.z()
+        };
+        desiredForward.normalize();
+        Vector3 currentForward = this->rotation() * this->forward;
+
+        double cosTheta = currentForward.dot(desiredForward);
+
+        if (cosTheta > 0.9999) return;
+
+        if (cosTheta < -0.9999) {
+            Quaternion turn = Quaternion::fromAxis(worldUp, M_PI);
+            turn.normalize();
+            Quaternion newRotation = turn * this->rotation();
+            newRotation.normalize();
+            this->_rotation = newRotation;
+        }
+
+        Vector3 rotAxis = currentForward.cross(desiredForward);
+        rotAxis.normalize();
+
+        double angle = acos(cosTheta);
+
+        Quaternion rotQuat = Quaternion::fromAxis(rotAxis, angle);
+        rotQuat.normalize();
+        Quaternion newRotation = rotQuat * this->rotation();
+        newRotation.normalize();
+        this->_rotation = newRotation;
+    }
+
     void rotate(const Vector3 &eulerAngles) {
         Quaternion deltaRotation(eulerAngles); // Uses your Euler constructor
         _rotation = deltaRotation * _rotation; // Apply new rotation
     }
 
-    Matrix<double> viewMatrix() const{
-      Matrix<double> translationMatrix = translate(-_position);
-      Matrix<double> rotationMatrix = Quaternion::toMatrix(_rotation).transpose();
-      return translationMatrix * rotationMatrix;
+    Matrix<double> viewMatrix() const {
+        Matrix<double> translationMatrix = translate(-_position);
+        Matrix<double> rotationMatrix = Quaternion::toMatrix(_rotation).transpose();
+        return translationMatrix * rotationMatrix;
     }
 
     Matrix<double> projectionMatrix() const {
@@ -74,7 +154,7 @@ public:
         double tanHalfFov = tan(fovRadians / 2);
         double range = _nearClip - _farClip;
 
-        Matrix<double> proj(4,4,0);
+        Matrix<double> proj(4, 4, 0);
         proj[0][0] = 1 / (tanHalfFov * _aspectRatio);
         proj[1][1] = 1 / tanHalfFov;
         proj[2][2] = (-_nearClip - _farClip) / range;
@@ -83,6 +163,11 @@ public:
         proj[3][3] = 0;
 
         return proj;
+    }
+
+    //draws only vertices for now
+    void drawObject(const Object &object, int screenWidth, int screenHeight) const {
+        drawVertices(object, screenWidth, screenHeight);
     }
 
     Vector3 position() const { return _position; }
@@ -101,6 +186,8 @@ public:
 
     void rotation(const Quaternion &rotation) { _rotation = rotation; }
 
+    void rotation(Quaternion &&rotation) { _rotation = std::move(rotation); }
+
     void fov(double fov) { _fov = fov; }
 
     void aspectRatio(double aspectRatio) { _aspectRatio = aspectRatio; }
@@ -109,7 +196,5 @@ public:
 
     void farClip(double farClip) { _farClip = farClip; }
 };
-
-#include "Quaternion.h"
 
 #endif //CAMERA_H
