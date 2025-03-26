@@ -56,13 +56,8 @@ private:
             }
             // Convert to screen space (viewport transformation)
             double screenX = (clipPosVector[0][0] * 0.5 + 0.5) * screenWidth;
-            double screenY = (clipPosVector[1][0] * 0.5 + 0.5) * screenHeight;
+            double screenY = (clipPosVector[1][0] * 0.5 + 0.5) * screenHeight;//without 1.0 -... because inverse y-axis
 
-            if (clipPosVector[0][0] < -clipPosVector[3][0] || clipPosVector[0][0] > clipPosVector[3][0] ||
-                clipPosVector[1][0] < -clipPosVector[3][0] || clipPosVector[1][0] > clipPosVector[3][0] ||
-                clipPosVector[2][0] < -clipPosVector[3][0] || clipPosVector[2][0] > clipPosVector[3][0]) {
-                continue; // Skip this vertex
-            }
             this->display(screenX, screenY);
         }
     }
