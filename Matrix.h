@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #define MIN_LIMIT 1e-10
+
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, int>::type = 0>
 class Matrix {
 private:
@@ -102,16 +103,6 @@ public:
 
     void clear() {
         matrix.clear();
-    }
-
-    void print() {
-        for (size_t i = 0; i < matrix.size(); i++) {
-            std::cout << "[ ";
-            for (size_t j = 0; j < matrix[0].size(); j++) {
-                std::cout << matrix[i][j] << " ";
-            }
-            std::cout << ']' << std::endl;
-        }
     }
 
     std::vector<T> &operator[](size_t row) {
@@ -347,6 +338,16 @@ public:
         return !(*this == other);
     }
 
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &obj) {
+        for (size_t i = 0; i < obj.matrix.size(); i++) {
+            os << "[ ";
+            for (size_t j = 0; j < obj.matrix[0].size(); j++) {
+                os << obj.matrix[i][j] << " ";
+            }
+            os << ']' << std::endl;
+        }
+        return os;
+    }
     std::pair<size_t, size_t> size() const {
         return {matrix.size(), matrix[0].size()};
     }
