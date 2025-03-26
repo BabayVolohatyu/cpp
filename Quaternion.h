@@ -84,6 +84,16 @@ public:
         return result;
     }
 
+    static Quaternion fromAxis(const Vector3 &axis, double angle) {
+        double halfAngle = degreesToRadians(angle) / 2;
+        double sinHalfAngle = std::sin(halfAngle);
+        return Quaternion{
+            cos(halfAngle),
+            axis.x() * sinHalfAngle,
+            axis.y() * sinHalfAngle,
+            axis.z() * sinHalfAngle
+        };
+    }
 
     static double degreesToRadians(double degrees) {
         return degrees * M_PI / 180;
